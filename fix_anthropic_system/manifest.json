@@ -1,0 +1,10 @@
+{
+  "id": "fix_anthropic_system",
+  "version": "2.0.0",
+  "description": "Move system-role messages into Anthropic's top-level system field, preserving instruction groups, cache metadata and lossless JSON numbers.",
+  "api_version": 2,
+  "entry": "plugin.js",
+  "requires": ["json.lossless.v1", "encoding.v1"],
+  "permissions": [],
+  "config_schema": { "type": "object", "properties": {} }
+}

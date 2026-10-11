@@ -1,0 +1,14 @@
+# Generated release bundles
+dist/
+
+# Local dependencies and secrets
+node_modules/
+.env
+.env.*
+*.log
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,20 @@
+{
+  "id": "custom_header",
+  "version": "2.0.0",
+  "description": "Injects custom HTTP headers without rewriting the request body. Host-managed authentication and transport headers cannot be overridden.",
+  "api_version": 2,
+  "entry": "plugin.js",
+  "requires": [],
+  "permissions": [],
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "headers": {
+        "type": "object",
+        "description": "Key-value pairs of HTTP headers to inject",
+        "additionalProperties": { "type": "string" }
+      }
+    },
+    "required": ["headers"]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "force_streaming",
+  "version": "2.0.0",
+  "description": "Request upstream SSE for buffered clients, then reconstruct OpenAI, Anthropic, Responses or Gemini JSON responses.",
+  "api_version": 2,
+  "entry": "plugin.js",
+  "requires": ["json.lossless.v1", "encoding.v1", "sse.collect.v2", "buffer.v1", "query.v1"],
+  "permissions": [],
+  "config_schema": { "type": "object", "properties": {} }
+}
