@@ -1,10 +1,9 @@
 {
   "id": "fix_anthropic_usage",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Normalize incomplete Anthropic usage blocks and synthesize missing message_delta usage from message_start counts.",
   "api_version": 2,
   "entry": "plugin.js",
   "requires": ["json.lossless.v1", "encoding.v1", "sse.events.v2"],
-  "permissions": [],
-  "config_schema": { "type": "object", "properties": {} }
+  "permissions": []
 }
