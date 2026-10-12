@@ -1,6 +1,6 @@
 {
   "id": "remove_thinking",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Removes thinking/reasoning response content across OpenAI, Anthropic, Responses and Gemini, preserving visible content, tool inputs and lossless numbers.",
   "api_version": 2,
   "entry": "plugin.js",

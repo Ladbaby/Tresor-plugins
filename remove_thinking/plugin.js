@@ -71,12 +71,19 @@ module.exports = {
     if (strip(p, format(context, null, p), false)) return { body: encoding.encode(json.stringifyLossless(p)) };
   },
   streamEvent({ event, state, context }) {
+    let f = format(context, event, undefined, state);
+    if ((f === "openai" && event.data.trim() === "[DONE]") || (f === "anthropic" && event.type === "message_stop")) { reset(state); return; }
+    if (f === "openai_responses") {
+      if (reasoningEvents.has(event.type)) return { events: [] };
+      // Deltas and completed tool arguments cannot contain reasoning items.
+      // Preserve their original bytes without parsing large tool payloads.
+      if (!["response.output_item.added", "response.output_item.done", "response.created", "response.in_progress", "response.completed"].includes(event.type)) return;
+    }
+    if (f === "anthropic" && !["content_block_start", "content_block_delta", "content_block_stop", "message_delta"].includes(event.type)) return;
     const p = parse(event.data);
-    const f = format(context, event, p, state);
+    f = f || format(context, event, p, state);
     if (!f) return;
     state.format = f;
-    if ((f === "openai" && event.data.trim() === "[DONE]") || (f === "anthropic" && event.type === "message_stop")) { reset(state); return; }
-    if (f === "openai_responses" && reasoningEvents.has(event.type)) return { events: [] };
     if (!object(p)) {
       if (f === "openai_responses" && event.type === "response.completed") reset(state);
       return;
