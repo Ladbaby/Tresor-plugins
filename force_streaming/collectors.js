@@ -36,7 +36,12 @@ function openai(s, data) {
     if (!own(s.items, i)) s.items[i] = { index: i, message: { role: "assistant" } };
     const dst = s.items[i], msg = dst.message, d = obj(c.delta);
     for (const k of ["role", "content", "reasoning_content", "reasoning", "refusal", "function_call"]) if (own(d, k)) {
-      if (["content", "reasoning_content", "reasoning", "refusal"].includes(k)) appendText(msg, k, d[k]);
+      if (["content", "reasoning_content", "reasoning", "refusal"].includes(k)) {
+        if (d[k] != null) {
+          if (typeof d[k] !== "string") throw Error("unsupported OpenAI text delta");
+          appendText(msg, k, d[k]);
+        }
+      }
       else if (k === "function_call") {
         const fn = obj(msg[k]);
         for (const key of Object.keys(obj(d[k]))) appendText(fn, key, d[k][key]);
@@ -46,10 +51,24 @@ function openai(s, data) {
     for (const rawTool of arr(d.tool_calls)) {
       const t = obj(rawTool), j = index(t.index);
       if (!own(s.tools, i)) s.tools[i] = Object.create(null);
-      if (!own(s.tools[i], j)) s.tools[i][j] = { type: "function", function: Object.create(null) };
-      const tm = s.tools[i][j], fn = tm.function, fd = obj(t.function);
-      for (const k of ["id", "type"]) if (own(t, k)) set(tm, k, t[k]);
-      for (const k of ["name", "arguments"]) if (own(fd, k)) appendText(fn, k, fd[k]);
+      if (!own(s.tools[i], j)) s.tools[i][j] = Object.create(null);
+      const tm = s.tools[i][j];
+      let type = own(t, "type") ? t.type : tm.type;
+      if (type === undefined) type = own(t, "custom") ? "custom" : own(t, "function") ? "function" : undefined;
+      if (!["function", "custom"].includes(type)) throw Error("unsupported OpenAI tool delta");
+      if (own(tm, "type") && tm.type !== type) throw Error("OpenAI tool type changed");
+      const key = type === "custom" ? "custom" : "function";
+      if (own(t, type === "custom" ? "function" : "custom")) throw Error("inconsistent OpenAI tool delta");
+      set(tm, "type", type);
+      if (own(t, "id")) set(tm, "id", t.id);
+      const target = obj(tm[key]), fragment = obj(t[key]);
+      for (const field of type === "custom" ? ["name", "input"] : ["name", "arguments"]) {
+        if (own(fragment, field) && fragment[field] != null) {
+          if (typeof fragment[field] !== "string") throw Error("invalid OpenAI tool fragment");
+          appendText(target, field, fragment[field]);
+        }
+      }
+      set(tm, key, target);
     }
     if (isObject(c.logprobs)) {
       const logs = obj(dst.logprobs);
@@ -109,12 +128,15 @@ function gemini(s, data) {
     const incoming = obj(c.content), content = dst.content;
     if (own(incoming, "role")) set(content, "role", incoming.role);
     for (const rawPart of arr(incoming.parts)) {
-      const p = obj(rawPart), prev = content.parts[content.parts.length - 1];
-      // Preserve tools/signatures and thought boundaries. Position restarts per event.
-      if (prev && p.text != null && Object.keys(p).length <= 2 && p.thoughtSignature == null &&
-          prev.text != null && Object.keys(prev).length <= 2 && prev.thought === p.thought) {
-        appendText(prev, "text", p.text);
-      } else content.parts.push(p);
+      const p = obj(rawPart);
+      // No stable part identity exists across events. Preserve every incoming
+      // boundary and metadata rather than guessing which text parts to merge.
+      if (typeof p.text === "string") {
+        const value = p.text;
+        set(p, "text", buffers.create());
+        buffers.append(p.text, value);
+      }
+      content.parts.push(p);
     }
   }
 }
@@ -134,7 +156,7 @@ function end(s) {
   const items = ordered(s.items);
   switch (s.format) {
     case "openai":
-      if (!s.done && (!items.length || Object.keys(s.items).some(i => !s.finished[i]))) throw Error("OpenAI stream incomplete");
+      if (!items.length || Object.keys(s.items).some(i => !s.finished[i])) throw Error("OpenAI stream incomplete");
       for (const i of Object.keys(s.items)) if (own(s.tools, i) && Object.keys(s.tools[i]).length) s.items[i].message.tool_calls = ordered(s.tools[i]);
       set(s.root, "object", "chat.completion"); set(s.root, "choices", items); return s.root;
     case "anthropic":
