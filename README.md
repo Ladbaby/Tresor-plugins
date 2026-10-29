@@ -6,7 +6,7 @@ JavaScript API V2 and V3 plugins for [Tresor](https://github.com/Ladbaby/Tresor)
 
 | Plugin | Version | Purpose |
 | --- | --- | --- |
-| `break_repeat` | 2.0.2 | Inserts a user reminder when the last three comparable assistant turns are identical; groups Responses output items and avoids empty/multimodal false positives. |
+| `break_repeat` | 2.0.3 | Inserts a user reminder when the last three comparable assistant turns are identical; thinking/reasoning blocks are excluded from the comparison, Responses output items are grouped, and empty/multimodal false positives are avoided. |
 | `fix_anthropic_system` | 2.0.1 | Moves system-role messages into Anthropic's top-level system field, preserving instruction groups and cache metadata. |
 | `fix_anthropic_usage` | 2.0.2 | Normalizes incomplete Anthropic usage blocks and synthesizes missing delta fields from the latest observed counters. |
 | `force_streaming` | 2.0.2 | Requests upstream SSE for buffered clients and reconstructs OpenAI, Anthropic, Responses, or Gemini JSON responses, preserving custom tools and part boundaries. |
