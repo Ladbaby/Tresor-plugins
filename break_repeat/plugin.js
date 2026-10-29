@@ -28,9 +28,11 @@ function messagePieces(message,format) {
         if(b.text.length){pieces.push(b.text);meaningful=true;}
       } else if(format==='anthropic'&&b.type==='tool_use'&&typeof b.name==='string'&&b.input!==undefined) {
         pieces.push(tool(b.name,b.input));meaningful=true;
-      } else if(format==='anthropic'&&b.type==='thinking'&&typeof b.thinking==='string')pieces.push({thinking:b.thinking});
-      else if(format==='anthropic'&&b.type==='redacted_thinking'&&typeof b.data==='string')pieces.push({redacted_thinking:b.data});
-      else return null;
+      } else if(b.type==='thinking'||b.type==='redacted_thinking') {
+        // Thinking is excluded from repeat comparison: only its shape is checked.
+        const valid=b.type==='thinking'?typeof b.thinking==='string':typeof b.data==='string';
+        if(!valid)return null;
+      } else return null;
     }
   } else if(message.content!=null)return null;
   if(message.tool_calls!==undefined) {
@@ -55,6 +57,8 @@ function geminiPieces(message) {
     if(!p||typeof p!=='object')return null;
     // Images/audio and unknown part shapes must not compare as empty text.
     if(Object.keys(p).some(k=>!['text','functionCall','thought','thoughtSignature'].includes(k)))return null;
+    // Thought parts are thinking output and never take part in comparison.
+    if(p.thought===true||p.thought==='true')continue;
     if(typeof p.text==='string') {if(p.text.length)pieces.push(p.text);}
     else if(p.functionCall&&typeof p.functionCall.name==='string'&&p.functionCall.args!==undefined)pieces.push(tool(p.functionCall.name,p.functionCall.args));
     else return null;
