@@ -1,10 +1,16 @@
 const json = require('tresor/json.v1');
 const encoding = require('tresor/encoding.v1');
 const reminder = 'You have repeated the exact same message three times in a row. You appear to be stuck in a loop. Stop repeating yourself and take a different, concrete next step (or finish if the task is already done).';
+// Anthropic-only content shapes identify the dialect. Anything else in
+// messages[] is treated as OpenAI, the common superset for that key.
+const ANTHROPIC_BLOCKS = ['tool_use', 'server_tool_use', 'mcp_tool_use', 'thinking', 'redacted_thinking', 'image'];
 function detect(payload) {
   if ('contents' in payload) return 'gemini';
   if ('input' in payload) return 'openai_responses';
-  if (Array.isArray(payload.messages)) return payload.messages.some(m => m && typeof m.content === 'string') ? 'openai' : 'anthropic';
+  if (Array.isArray(payload.messages)) {
+    const anthropic = payload.messages.some(m => m && Array.isArray(m.content) && m.content.some(b => b && typeof b === 'object' && ANTHROPIC_BLOCKS.includes(b.type)));
+    return anthropic ? 'anthropic' : 'openai';
+  }
   return null;
 }
 function sorted(value) {
@@ -26,7 +32,7 @@ function messagePieces(message,format) {
       if(!b || typeof b!=='object')return null;
       if(['text','input_text','output_text'].includes(b.type)&&typeof b.text==='string') {
         if(b.text.length){pieces.push(b.text);meaningful=true;}
-      } else if(format==='anthropic'&&b.type==='tool_use'&&typeof b.name==='string'&&b.input!==undefined) {
+      } else if(format==='anthropic'&&['tool_use','server_tool_use','mcp_tool_use'].includes(b.type)&&typeof b.name==='string'&&b.input!==undefined) {
         pieces.push(tool(b.name,b.input));meaningful=true;
       } else if(b.type==='thinking'||b.type==='redacted_thinking') {
         // Thinking is excluded from repeat comparison: only its shape is checked.
@@ -107,21 +113,41 @@ function lastTurns(payload,format) {
   }
   return out;
 }
+// Text already carried by a user turn, used to keep the reminder idempotent.
+function userText(turn,kind) {
+  if(!turn||typeof turn!=='object')return null;
+  if(kind==='gemini')return Array.isArray(turn.parts)?turn.parts.filter(p=>p&&typeof p.text==='string').map(p=>p.text).join(''):null;
+  if(typeof turn.content==='string')return turn.content;
+  if(Array.isArray(turn.content))return turn.content.filter(b=>b&&typeof b.text==='string').map(b=>b.text).join('');
+  return null;
+}
+// Extend the trailing user turn when there is one so a single user turn never
+// becomes two consecutive user messages, which strict upstreams reject.
+function appendUser(list,text,kind) {
+  if(!Array.isArray(list))return;
+  const tail=list[list.length-1];
+  if(tail&&typeof tail==='object'&&tail.role==='user') {
+    const existing=userText(tail,kind);
+    if(typeof existing==='string'&&existing.includes(text))return;
+    if(kind==='gemini') {tail.parts=Array.isArray(tail.parts)?tail.parts:[];tail.parts.push({text});return;}
+    const blockType=kind==='responses'?'input_text':'text';
+    const blocks=Array.isArray(tail.content)?tail.content.slice():typeof tail.content==='string'?[{type:blockType,text:tail.content}]:[];
+    blocks.push({type:blockType,text});tail.content=blocks;return;
+  }
+  if(kind==='gemini')list.push({role:'user',parts:[{text}]});
+  else list.push({role:'user',content:text});
+}
 function request({body,context}) {
-  let format=context.formats.current;
+  let format=context&&context.formats?context.formats.current:null;
   let payload;try {payload=json.parseLossless(encoding.decode(body));}catch(_){return;}
   if(!payload||typeof payload!=='object'||Array.isArray(payload))return;
   format=format===null||format===undefined?detect(payload):format;
   if(!['openai','anthropic','openai_responses','gemini'].includes(format))return;
   const last=lastTurns(payload,format);if(last.length!==3||last[0]!==last[1]||last[1]!==last[2])return;
-  if(format==='gemini')payload.contents.push({role:'user',parts:[{text:reminder}]});
-  else if(format==='openai_responses')payload.input.push({role:'user',content:reminder});
-  else if(format==='openai')payload.messages.push({role:'user',content:reminder});
-  else {
-    const block={type:'text',text:reminder},tail=payload.messages[payload.messages.length-1];
-    if(tail&&tail.role==='user'){if(Array.isArray(tail.content))tail.content.push(block);else tail.content=typeof tail.content==='string'?[{type:'text',text:tail.content},block]:[block];}
-    else payload.messages.push({role:'user',content:[block]});
-  }
+  if(format==='gemini')appendUser(payload.contents,reminder,'gemini');
+  else if(format==='openai_responses')appendUser(payload.input,reminder,'responses');
+  else if(format==='openai')appendUser(payload.messages,reminder,'openai');
+  else appendUser(payload.messages,reminder,'anthropic');
   return {body:encoding.encode(json.stringifyLossless(payload))};
 }
 module.exports={request};
