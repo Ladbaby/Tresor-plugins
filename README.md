@@ -10,6 +10,7 @@ JavaScript API V2 and V3 plugins for [Tresor](https://github.com/Ladbaby/Tresor)
 | `fix_anthropic_system` | 2.0.1 | Moves system-role messages into Anthropic's top-level system field, preserving instruction groups and cache metadata. |
 | `fix_anthropic_usage` | 2.0.2 | Normalizes incomplete Anthropic usage blocks and synthesizes missing delta fields from the latest observed counters. |
 | `force_streaming` | 2.0.2 | Requests upstream SSE for buffered clients and reconstructs OpenAI, Anthropic, Responses, or Gemini JSON responses, preserving custom tools and part boundaries. |
+| `opencode-go` | 1.0.1 | Speaks to OpenCode Zen/Go gateways as OpenCode 1.19.0 does: synthesizes the `x-opencode-*` session/request headers with a stable per-conversation session id (engine KV store, atomic get-or-set), strips foreign session headers, and serves the free tier its streamed `bash`/`read` tool stubs with the `/zen`→`/inference` rewrite. |
 | `remove_thinking` | 2.0.2 | Removes thinking/reasoning response content while preserving visible content and tool inputs. |
 | `tresorbot/bridge` | 1.0.0 | Bridges a request to a TresorBot service and exposes that service's scoped durable-memory tools to the model. Requires rule step configuration. |
 
@@ -41,7 +42,7 @@ Only install plugin code from sources you trust. HTTPS alone does not establish 
 
 ## Rule step configuration
 
-API V2 plugins take no configuration: add them to a rule pipeline and they apply.
+Most API V2 plugins take no configuration: add them to a rule pipeline and they apply.
 
 API V3 plugins declare a `config_schema`, and each rule pipeline step carries its own `config` object, so the same plugin can point at different services in different rules. `tresorbot/bridge` requires `sun_url`, `service_token`, and `control_token` in its step config, and binds them to its `local` service for the `prepare`, `invoke`, and `execute-tool` operations. Credentials stay in that step; there are no global service or grant settings. Service base URLs must use HTTPS, or HTTP only on loopback.
 
