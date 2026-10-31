@@ -1,7 +1,7 @@
 {
   "id": "opencode-go",
   "version": "1.0.1",
-  "description": "Speaks to OpenCode Zen/Go gateways as OpenCode 1.19.0 does: synthesizes the x-opencode-* session/request headers with a stable per-conversation session id (engine KV-backed LRU), strips foreign session headers, and serves the free tier its streamed bash/read tool stubs with the /zen to /inference rewrite.",
+  "description": "Speaks to OpenCode Zen/Go gateways as OpenCode 1.19.0 does: synthesizes the x-opencode-* session/request headers with a stable per-conversation session id (engine KV store, atomic get-or-set), strips foreign session headers, and serves the free tier its streamed bash/read tool stubs with the /zen to /inference rewrite.",
   "api_version": 2,
   "entry": "plugin.js",
   "requires": ["kv.v1", "json.lossless.v1", "encoding.v1", "sse.events.v2"],
