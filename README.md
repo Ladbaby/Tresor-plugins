@@ -6,6 +6,7 @@ JavaScript API V2 and V3 plugins for [Tresor](https://github.com/Ladbaby/Tresor)
 
 | Plugin | Version | Purpose |
 | --- | --- | --- |
+| `codex` | 1.0.0 | Speaks to the ChatGPT/Codex subscription backend the way the reference client does: opts the request out of server-side storage, requests encrypted reasoning, pins a stable prompt cache key derived from the conversation's stable prefix, correlates the request with a session id, zstd-compresses a streaming body, and lists models from the version-gated backend manifest. A **provider dialect** (see below), selected by `auth.wire: codex`. |
 | `break_repeat` | 2.0.4 | Inserts a user reminder when the last three comparable assistant turns are identical; thinking/reasoning blocks are excluded from the comparison, the reminder merges into the trailing user turn, and format detection is based on content shape. |
 | `fix_anthropic_system` | 2.0.1 | Moves system-role messages into Anthropic's top-level system field, preserving instruction groups and cache metadata. |
 | `fix_anthropic_usage` | 2.0.2 | Normalizes incomplete Anthropic usage blocks and synthesizes missing delta fields from the latest observed counters. |
@@ -39,6 +40,39 @@ Alternatively, open **Rules > Plugins** in the Tresor dashboard, install the rel
 Manage installed versions with `plugin enable <id> <version>`, `plugin disable <id> <version>`, and `plugin delete <id> <version>`.
 
 Only install plugin code from sources you trust. HTTPS alone does not establish a verified publisher signature. An expected digest checks that the package matches the digest you supplied; obtain that digest from a trusted source.
+
+## Provider dialects
+
+A plugin can declare itself a **provider dialect**: the place where a vendor's
+non-generic request shape lives, so it never has to be compiled into the gateway.
+
+```json
+"dialect": { "name": "codex", "no_replay": true, "discovery": "plugin" }
+```
+
+A dialect implements `wirePrepare` (rewrite the body and add headers),
+optionally `wireDiscover` + `wireParseModels` (answer the provider's model list in
+its own protocol). `no_replay` and `discovery` are manifest data, not hook return
+values, so the gateway can audit its own policy without executing plugin code.
+
+Reference the dialect by name from a downstream's auth block:
+
+```yaml
+auth:
+  type: oauth
+  wire: codex
+```
+
+The gateway still performs every HTTP request — a package never gets network
+access. Provider recipes (installable provider profiles) install their dialect
+package automatically, so the user flow is still just "pick the provider and sign
+in". `auth.wire` with no matching package installed fails at request time, so
+install the package (or use a recipe that does).
+
+Provider identity headers usually do not need a dialect at all — `auth.extra_headers`
+supports `literal`, `from_claim` (a JWT claim) and `template` values, which covers
+most relay setups. Reach for a dialect only when a fingerprint, compression,
+correlation scheme, or a version-gated endpoint is involved.
 
 ## Rule step configuration
 

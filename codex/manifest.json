@@ -1,0 +1,18 @@
+{
+  "id": "codex",
+  "version": "1.0.0",
+  "description": "Speaks to the ChatGPT/Codex subscription backend the way the reference client does: opts the request out of server-side storage, asks for encrypted reasoning, pins a stable prompt cache key derived from the conversation's stable prefix, correlates the request with a session id, and zstd-compresses a streaming body. Also lists the models the account can serve from the backend's version-gated manifest.",
+  "api_version": 3,
+  "entry": "plugin.js",
+  "requires": ["wire.v3", "crypto.v1", "compress.v1"],
+  "permissions": [],
+  "config_schema": {
+    "type": "object",
+    "additionalProperties": false
+  },
+  "dialect": {
+    "name": "codex",
+    "no_replay": true,
+    "discovery": "plugin"
+  }
+}
