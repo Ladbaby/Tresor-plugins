@@ -7,12 +7,13 @@ JavaScript API V2 and V3 plugins for [Tresor](https://github.com/Ladbaby/Tresor)
 | Plugin | Version | Purpose |
 | --- | --- | --- |
 | `codex` | 1.0.0 | Speaks to the ChatGPT/Codex subscription backend the way the reference client does. |
-| `break_repeat` | 2.0.4 | Inserts a user reminder when the last three comparable assistant turns are identical; thinking/reasoning blocks are excluded from the comparison, the reminder merges into the trailing user turn, and format detection is based on content shape. |
-| `fix_anthropic_system` | 2.0.1 | Moves system-role messages into Anthropic's top-level system field, preserving instruction groups and cache metadata. |
-| `fix_anthropic_usage` | 2.0.2 | Normalizes incomplete Anthropic usage blocks and synthesizes missing delta fields from the latest observed counters. |
-| `force_streaming` | 2.0.2 | Requests upstream SSE for buffered clients and reconstructs OpenAI, Anthropic, Responses, or Gemini JSON responses, preserving custom tools and part boundaries. |
+| `break-repeat` | 2.0.4 | Inserts a user reminder when the last three comparable assistant turns are identical; thinking/reasoning blocks are excluded from the comparison, the reminder merges into the trailing user turn, and format detection is based on content shape. |
+| `fix-anthropic-system` | 2.0.1 | Moves system-role messages into Anthropic's top-level system field, preserving instruction groups and cache metadata. |
+| `fix-anthropic-usage` | 2.0.2 | Normalizes incomplete Anthropic usage blocks and synthesizes missing delta fields from the latest observed counters. |
+| `force-streaming` | 2.0.2 | Requests upstream SSE for buffered clients and reconstructs OpenAI, Anthropic, Responses, or Gemini JSON responses, preserving custom tools and part boundaries. |
+| `mask-sensitive` | 1.0.0 | Sends secrets and personal data to the provider as placeholders and puts the real values back in the reply, streams included. Values live only in the request's own state; a per-category schema turns masking on and off. |
 | `opencode-go` | 1.0.1 | Speaks to OpenCode Zen/Go gateways as OpenCode 1.19.0 does: synthesizes the `x-opencode-*` session/request headers with a stable per-conversation session id (engine KV store, atomic get-or-set), strips foreign session headers, and serves the free tier its streamed `bash`/`read` tool stubs with the `/zen`→`/inference` rewrite. |
-| `remove_thinking` | 2.0.2 | Removes thinking/reasoning response content while preserving visible content and tool inputs. |
+| `remove-thinking` | 2.0.2 | Removes thinking/reasoning response content while preserving visible content and tool inputs. |
 | `tresorbot/bridge` | 1.0.0 | Bridges a request to a TresorBot service and exposes that service's scoped durable-memory tools to the model. Requires rule step configuration. |
 
 Use a Tresor build supporting plugin API V2 or V3 and the features declared in each plugin's `manifest.json`. 
@@ -70,8 +71,8 @@ Each plugin lives in its own directory containing `manifest.json`, the entry Jav
 
 ```powershell
 New-Item -ItemType Directory -Force dist | Out-Null
-..\Tresor\tresor.exe plugin lint ./remove_thinking
-..\Tresor\tresor.exe plugin pack ./remove_thinking --output ./dist/remove_thinking-2.0.2.json
+..\Tresor\tresor.exe plugin lint ./remove-thinking
+..\Tresor\tresor.exe plugin pack ./remove-thinking --output ./dist/remove-thinking-2.0.2.json
 ```
 
 Lint and pack do not execute JavaScript. Lint findings are advisory unless `--strict` is supplied; lint is not a compatibility proof. Pack prints the canonical source digest and refuses to overwrite an existing output file.
