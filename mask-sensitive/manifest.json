@@ -1,0 +1,165 @@
+{
+  "id": "mask-sensitive",
+  "version": "1.0.0",
+  "description": "Sends secrets and personal data to the provider as placeholders, and puts the real values back in the reply, streams included.",
+  "api_version": 2,
+  "entry": "plugin.js",
+  "requires": [
+    "json.lossless.v1",
+    "encoding.v1",
+    "crypto.v1",
+    "sse.events.v2"
+  ],
+  "permissions": [],
+  "config_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "secrets": {
+        "type": "boolean",
+        "default": true,
+        "title": "Mask secrets",
+        "description": "API keys, tokens, private keys, passwords, and credential assignments."
+      },
+      "personal": {
+        "type": "boolean",
+        "default": true,
+        "title": "Mask personal data",
+        "description": "Email addresses, phone numbers, ID and card numbers, and the categories below."
+      },
+      "email": {
+        "type": "boolean",
+        "default": true,
+        "title": "Email addresses"
+      },
+      "phone": {
+        "type": "boolean",
+        "default": true,
+        "title": "Phone numbers"
+      },
+      "id_card": {
+        "type": "boolean",
+        "default": true,
+        "title": "Chinese ID card numbers"
+      },
+      "bank_card": {
+        "type": "boolean",
+        "default": true,
+        "title": "Card numbers (Luhn-checked)"
+      },
+      "ssn": {
+        "type": "boolean",
+        "default": true,
+        "title": "US Social Security numbers"
+      },
+      "passport": {
+        "type": "boolean",
+        "default": true,
+        "title": "Passport numbers"
+      },
+      "iban": {
+        "type": "boolean",
+        "default": true,
+        "title": "IBANs (mod-97-checked)"
+      },
+      "birthday": {
+        "type": "boolean",
+        "default": true,
+        "title": "Dates of birth"
+      },
+      "mac": {
+        "type": "boolean",
+        "default": true,
+        "title": "MAC addresses"
+      },
+      "serial": {
+        "type": "boolean",
+        "default": true,
+        "title": "Serial numbers"
+      },
+      "home": {
+        "type": "boolean",
+        "default": false,
+        "title": "User names in home folders",
+        "description": "Off by default: a home folder is in every agent's system prompt, so every request would carry a placeholder for it."
+      },
+      "userhost": {
+        "type": "boolean",
+        "default": false,
+        "title": "user@host and hostnames",
+        "description": "Off by default, for the same reason."
+      },
+      "ip": {
+        "type": "boolean",
+        "default": false,
+        "title": "Public IP addresses",
+        "description": "Off by default, for the same reason."
+      },
+      "bucket": {
+        "type": "boolean",
+        "default": false,
+        "title": "Cloud storage buckets",
+        "description": "Off by default, for the same reason."
+      },
+      "words": {
+        "type": "array",
+        "default": [],
+        "title": "Words of your own",
+        "description": "Names, code words and hosts to mask wherever they appear.",
+        "items": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        }
+      },
+      "words_any_case": {
+        "type": "boolean",
+        "default": false,
+        "title": "Match your words in any case"
+      },
+      "words_whole": {
+        "type": "boolean",
+        "default": false,
+        "title": "Match your words only as whole words"
+      },
+      "allow": {
+        "type": "array",
+        "default": [],
+        "title": "Values to send as they are",
+        "description": "Each a whole value, in any case. Nothing here is masked.",
+        "items": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      },
+      "rules": {
+        "type": "array",
+        "default": [],
+        "title": "Your own patterns",
+        "description": "For a secret the built-in rules do not know. The match is masked under the kind you give it.",
+        "maxItems": 32,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "pattern"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 24
+            },
+            "pattern": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300
+            }
+          }
+        }
+      }
+    }
+  }
+}
