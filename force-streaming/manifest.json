@@ -1,5 +1,5 @@
 {
-  "id": "force_streaming",
+  "id": "force-streaming",
   "version": "2.0.2",
   "description": "Request upstream SSE for buffered clients, then reconstruct OpenAI, Anthropic, Responses or Gemini JSON responses.",
   "api_version": 2,

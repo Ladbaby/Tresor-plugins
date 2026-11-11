@@ -1,5 +1,5 @@
 {
-  "id": "fix_anthropic_system",
+  "id": "fix-anthropic-system",
   "version": "2.0.1",
   "description": "Move system-role messages into Anthropic's top-level system field, preserving instruction groups, cache metadata and lossless JSON numbers.",
   "api_version": 2,

@@ -1,5 +1,5 @@
 {
-  "id": "fix_anthropic_usage",
+  "id": "fix-anthropic-usage",
   "version": "2.0.2",
   "description": "Normalize incomplete Anthropic usage blocks and synthesize missing delta fields from the latest observed counters.",
   "api_version": 2,

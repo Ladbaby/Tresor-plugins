@@ -14,7 +14,7 @@ module.exports = {
     let path = request.path;
     if (!["/chat/completions", "/messages", "/responses", ":generateContent", ":streamGenerateContent"].some(suffix => path.endsWith(suffix))) return;
     const payload = json.parseLossless(encoding.decode(body));
-    if (!object(payload)) throw Error("force_streaming expects a JSON object");
+    if (!object(payload)) throw Error("force-streaming expects a JSON object");
     const patch = { setHeaders: { Accept: ["text/event-stream"] } };
     if (["openai", "anthropic", "openai_responses"].includes(format)) {
       set(payload, "stream", true);
@@ -26,12 +26,12 @@ module.exports = {
     } else if (format === "gemini") {
       delete payload.stream;
       if (path.endsWith(":generateContent")) path = path.slice(0, -":generateContent".length) + ":streamGenerateContent";
-      if (!path.endsWith(":streamGenerateContent")) throw Error("force_streaming: invalid Gemini generation path");
+      if (!path.endsWith(":streamGenerateContent")) throw Error("force-streaming: invalid Gemini generation path");
       patch.path = path;
       const entries = query.parse(request.query).filter(([key]) => key !== "alt");
       entries.push(["alt", "sse"]);
       patch.query = query.stringify(entries);
-    } else throw Error("force_streaming: unsupported downstream format");
+    } else throw Error("force-streaming: unsupported downstream format");
     return { body: encoding.encode(json.stringifyLossless(payload)), request: patch, transport: { upstream: "sse", delivery: "collect" } };
   },
   collectStart({ state, context }) { state.collector = collectors.start(context.formats.current); },
